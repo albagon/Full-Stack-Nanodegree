@@ -261,13 +261,14 @@ def create_venue_submission():
   body = {}
   try:
     form = request.form
+    genres_list = request.form.getlist('genres')
     if form['seeking_talent'] == 'Yes':
       bool_seeking_talent = True
     else:
       bool_seeking_talent = False
     venue = Venue(
       name= form['name'],
-      genres = form['genres'],
+      genres = genres_list,
       address = form['address'],
       city = form['city'],
       state = form['state'],
