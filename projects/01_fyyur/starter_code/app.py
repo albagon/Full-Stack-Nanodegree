@@ -288,12 +288,11 @@ def create_venue_submission():
     print(sys.exc_info())
   finally:
     db.session.close()
-  if not error:
-    # on successful db insert, flash success
-    flash('Venue ' + body['name'] + ' was successfully listed!')
-    return render_template('pages/home.html')
-  else:
-    flash('Venue ' + request.form['name'] + ' was NOT successfully listed!')
+    if not error:
+      # on successful db insert, flash success
+      flash('Venue ' + body['name'] + ' was successfully listed!')
+    else:
+      flash('Venue ' + request.form['name'] + ' was NOT successfully listed!')
     return render_template('pages/home.html')
     # TODO: on unsuccessful db insert, flash an error instead.
     # DONE
@@ -517,12 +516,11 @@ def create_artist_submission():
     print(sys.exc_info())
   finally:
     db.session.close()
-  if not error:
-    # on successful db insert, flash success
-    flash('Artist ' + body['name'] + ' was successfully listed!')
-    return render_template('pages/home.html')
-  else:
-    flash('An error occurred. Artist ' + request.form['name'] + ' could not be listed.')
+    if not error:
+      # on successful db insert, flash success
+      flash('Artist ' + body['name'] + ' was successfully listed!')
+    else:
+      flash('An error occurred. Artist ' + request.form['name'] + ' could not be listed.')
     return render_template('pages/home.html')
     # TODO: on unsuccessful db insert, flash an error instead.
     # DONE
@@ -601,12 +599,11 @@ def create_show_submission():
     print(sys.exc_info())
   finally:
     db.session.close()
-  if not error:
-    # on successful db insert, flash success
-    flash('Show was successfully listed!')
-    return render_template('pages/home.html')
-  else:
-    flash('An error occurred. Show could not be listed.')
+    if not error:
+      # on successful db insert, flash success
+      flash('Show was successfully listed!')
+    else:
+      flash('An error occurred. Show could not be listed.')
     return render_template('pages/home.html')
     # TODO: on unsuccessful db insert, flash an error instead.
     # DONE
