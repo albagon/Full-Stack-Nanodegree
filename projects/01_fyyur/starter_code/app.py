@@ -12,6 +12,7 @@ from flask_migrate import Migrate
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
+from datetime import datetime
 from forms import *
 import sys
 #----------------------------------------------------------------------------#
@@ -61,6 +62,8 @@ class Venue(db.Model):
 class Artist(db.Model):
     __tablename__ = 'Artist'
 
+    # TODO: implement any missing fields, as a database migration using Flask-Migrate
+    # DONE
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     genres = db.Column(db.ARRAY(db.String), nullable=False)
@@ -74,8 +77,20 @@ class Artist(db.Model):
     seeking_description = db.Column(db.String(500))
     shows = db.relationship('Show', backref='artist', lazy=True)
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
-    # DONE
+    def dictionary(self):
+      return {
+        'id': self.id,
+        'name': self.name,
+        'genres': self.genres,
+        'city': self.city,
+        'state': self.state,
+        'phone': self.phone,
+        'website': self.website,
+        'image_link': self.image_link,
+        'facebook_link': self.facebook_link,
+        'seeking_venue': self.seeking_venue,
+        'seeking_description': self.seeking_description
+      }
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 # DONE
@@ -103,6 +118,23 @@ def format_datetime(value, format='medium'):
   return babel.dates.format_datetime(date, format)
 
 app.jinja_env.filters['datetime'] = format_datetime
+
+#----------------------------------------------------------------------------#
+# Utilities.
+#----------------------------------------------------------------------------#
+
+# This function takes a list of show objects and gives them the right format
+# so that they can be displayed in the template.
+# Returns a new dictionary with the formatted data.
+def show_list_to_dict(show_list):
+  shows_dict = []
+  for show in show_list:
+    show_d = show.__dict__
+    show_d['start_time'] = str(show_d['start_time'])
+    show_d['venue_name'] = show.venue.name
+    show_d['venue_image_link'] = show.venue.image_link
+    shows_dict.append(show_d)
+  return shows_dict
 
 #----------------------------------------------------------------------------#
 # Controllers.
@@ -313,17 +345,8 @@ def delete_venue(venue_id):
 @app.route('/artists')
 def artists():
   # TODO: replace with real data returned from querying the database
-  data=[{
-    "id": 4,
-    "name": "Guns N Petals",
-  }, {
-    "id": 5,
-    "name": "Matt Quevedo",
-  }, {
-    "id": 6,
-    "name": "The Wild Sax Band",
-  }]
-  return render_template('pages/artists.html', artists=data)
+  # DONE
+  return render_template('pages/artists.html', artists=Artist.query.all())
 
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
@@ -344,7 +367,7 @@ def search_artists():
 def show_artist(artist_id):
   # shows the venue page with the given venue_id
   # TODO: replace with real venue data from the venues table, using venue_id
-  data1={
+  '''data1={
     "id": 4,
     "name": "Guns N Petals",
     "genres": ["Rock n Roll"],
@@ -414,9 +437,21 @@ def show_artist(artist_id):
     }],
     "past_shows_count": 0,
     "upcoming_shows_count": 3,
-  }
-  data = list(filter(lambda d: d['id'] == artist_id, [data1, data2, data3]))[0]
-  return render_template('pages/show_artist.html', artist=data)
+  }'''
+  artist = Artist.query.get(artist_id)
+  artist_dict = artist.__dict__
+  today = datetime.today()
+
+  upcoming_shows = Show.query.filter(Show.start_time >= today, Show.artist_id == artist_id).all()
+  upcoming_shows_dict = show_list_to_dict(upcoming_shows)
+  artist_dict['upcoming_shows'] = upcoming_shows_dict
+  artist_dict['upcoming_shows_count'] = len(upcoming_shows_dict)
+
+  past_shows = Show.query.filter(Show.start_time < today, Show.artist_id == artist_id).all()
+  past_shows_dict = show_list_to_dict(past_shows)
+  artist_dict['past_shows'] = past_shows_dict
+  artist_dict['past_shows_count'] = len(past_shows_dict)
+  return render_template('pages/show_artist.html', artist=artist_dict)
 
 #  Update
 #  ----------------------------------------------------------------
