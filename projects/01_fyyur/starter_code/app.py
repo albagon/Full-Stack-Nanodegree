@@ -446,6 +446,7 @@ def edit_venue(venue_id):
 def edit_venue_submission(venue_id):
   # TODO: take values from the form submitted, and update existing
   # venue record with ID <venue_id> using the new attributes
+  # DONE
   error = False
   body = {}
   try:
@@ -478,8 +479,6 @@ def edit_venue_submission(venue_id):
     else:
       flash('An error occurred. Venue ' + request.form['name'] + ' could not be updated.')
       return redirect(url_for('server_error'))
-
-  #return redirect(url_for('show_venue', venue_id=venue_id))
 
 #  Create Artist
 #  ----------------------------------------------------------------
