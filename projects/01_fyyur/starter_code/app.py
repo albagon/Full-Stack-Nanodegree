@@ -385,8 +385,39 @@ def edit_artist(artist_id):
 def edit_artist_submission(artist_id):
   # TODO: take values from the form submitted, and update existing
   # artist record with ID <artist_id> using the new attributes
-
-  return redirect(url_for('show_artist', artist_id=artist_id))
+  # DONE
+  error = False
+  body = {}
+  try:
+    genres_list = request.form.getlist('genres')
+    artist = Artist.query.get(artist_id)
+    artist.name = request.form['name']
+    artist.city = request.form['city']
+    artist.state = request.form['state']
+    artist.phone = request.form['phone']
+    artist.genres = genres_list
+    artist.facebook_link = request.form['facebook_link']
+    artist.website = request.form['website']
+    artist.image_link = request.form['image_link']
+    if request.form['seeking_venue'] == 'Yes':
+      artist.seeking_venue = True
+    else:
+      artist.seeking_venue = False
+    artist.seeking_description = request.form['seeking_description']
+    db.session.commit()
+    body['name'] = artist.name
+  except:
+    error = True
+    db.session.rollback()
+    print( sys.exc_info() )
+  finally:
+    db.session.close()
+    if not error:
+      flash('Artist ' + body['name'] + ' was successfully updated!')
+      return redirect(url_for('show_artist', artist_id=artist_id))
+    else:
+      flash('An error occurred. Artist ' + request.form['name'] + ' could not be updated.')
+      return redirect(url_for('server_error'))
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
@@ -407,20 +438,6 @@ def edit_venue(venue_id):
   else:
     form.seeking_talent.data='No'
   form.seeking_description.data=venue.seeking_description
-  '''venue={
-    "id": 1,
-    "name": "The Musical Hop",
-    "genres": ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
-    "address": "1015 Folsom Street",
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "123-123-1234",
-    "website": "https://www.themusicalhop.com",
-    "facebook_link": "https://www.facebook.com/TheMusicalHop",
-    "seeking_talent": True,
-    "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
-    "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60"
-  }'''
   # TODO: populate form with values from venue with ID <venue_id>
   # DONE
   return render_template('forms/edit_venue.html', form=form, venue=venue)
