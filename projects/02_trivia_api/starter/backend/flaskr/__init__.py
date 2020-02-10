@@ -56,6 +56,29 @@ def create_app(test_config=None):
   Clicking on the page numbers should update the questions.
   '''
 
+  @app.route("/questions")
+  def get_questions():
+    page = request.args.get('page', 1, type=int)
+    start = (page - 1) * QUESTIONS_PER_PAGE
+    end = start + QUESTIONS_PER_PAGE
+    questions = Question.query.all()
+    formatted_questions = [question.format() for question in questions]
+    current_questions = formatted_questions[start:end]
+
+    if len(current_questions) == 0:
+      abort(404)
+
+    categories = Category.query.all()
+    formatted_categories = [category.format() for category in categories]
+
+    return jsonify({
+      'success': True,
+      'questions': formatted_questions[start:end],
+      'total_questions': len(formatted_questions),
+      'current_category': questions[start].category,
+      'categories': formatted_categories
+    })
+
   '''
   @TODO:
   Create an endpoint to DELETE question using a question ID.
