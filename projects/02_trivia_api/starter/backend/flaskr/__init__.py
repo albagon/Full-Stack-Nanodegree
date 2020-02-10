@@ -16,7 +16,7 @@ def create_app(test_config=None):
   '''
   @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
   '''
-  CORS(app, resources={r"/*": {"origins": "*"}})
+  CORS(app, resources={r'/*': {'origins': '*'}})
 
   '''
   @TODO: Use the after_request decorator to set Access-Control-Allow
@@ -33,7 +33,7 @@ def create_app(test_config=None):
   Create an endpoint to handle GET requests
   for all available categories.
   '''
-  @app.route("/categories")
+  @app.route('/categories')
   def get_categories():
     categories = Category.query.all()
     formatted_categories = [category.format() for category in categories]
@@ -56,7 +56,7 @@ def create_app(test_config=None):
   Clicking on the page numbers should update the questions.
   '''
 
-  @app.route("/questions")
+  @app.route('/questions')
   def get_questions():
     page = request.args.get('page', 1, type=int)
     start = (page - 1) * QUESTIONS_PER_PAGE
@@ -136,5 +136,13 @@ def create_app(test_config=None):
   Create error handlers for all expected errors
   including 404 and 422.
   '''
+
+  @app.errorhandler(404)
+  def not_found(error):
+    return jsonify({
+      'success': False,
+      'error': 404,
+      'message': 'resource not found'
+    }), 404
 
   return app
