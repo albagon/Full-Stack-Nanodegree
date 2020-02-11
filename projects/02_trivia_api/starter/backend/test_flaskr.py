@@ -37,6 +37,12 @@ class TriviaTestCase(unittest.TestCase):
             'category': 'wrong',
             'difficulty': 1
         }
+        self.search_term = {
+            'searchTerm': 'title'
+        }
+        self.absent_term = {
+            'searchTerm': 'xxx'
+        }
 
     def tearDown(self):
         """Executed after reach test"""
@@ -119,8 +125,9 @@ class TriviaTestCase(unittest.TestCase):
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
-        self.assertTrue(data['total_questions'])
         self.assertTrue(len(data['questions']))
+        self.assertTrue(data['total_questions'])
+        self.assertTrue(data['current_category'])
 
     def test_404_sent_requesting_invalid_category(self):
         res = self.client().get('/categories/1000/questions')
@@ -129,6 +136,26 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 404)
         self.assertEqual(data['success'], False)
         self. assertEqual(data['message'], 'resource not found')
+
+    def test_search_question_by_term(self):
+        res = self.client().post('/searches', json=self.search_term)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(len(data['questions']))
+        self.assertTrue(data['total_questions'])
+        self.assertTrue(data['current_category'])
+
+    def test_searching_absent_term(self):
+        res = self.client().post('/searches', json=self.absent_term)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(len(data['questions']), 0)
+        self.assertFalse(data['total_questions'])
+        self.assertEqual(data['current_category'], None)
 
 # Make the tests conveniently executable
 if __name__ == "__main__":
