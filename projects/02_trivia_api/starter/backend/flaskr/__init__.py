@@ -181,7 +181,6 @@ def create_app(test_config=None):
     categories in the left column will cause only questions of that
     category to be shown.
     """
-
     @app.route('/categories/<int:category_id>/questions')
     def get_questions_per_category(category_id):
         questions = Question.query.filter(Question.category == category_id).all()
@@ -229,7 +228,7 @@ def create_app(test_config=None):
             'success': False,
             'error': 405,
             'message': 'method not allowed'
-        }), 422
+        }), 405
 
     @app.errorhandler(422)
     def unprocessable(error):
