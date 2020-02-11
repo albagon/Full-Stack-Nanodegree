@@ -31,6 +31,12 @@ class TriviaTestCase(unittest.TestCase):
             'category': 1,
             'difficulty': 1
         }
+        self.bad_question = {
+            'question': 'Why is this question wrong?',
+            'answer': 'January',
+            'category': 'wrong',
+            'difficulty': 1
+        }
 
     def tearDown(self):
         """Executed after reach test"""
@@ -101,13 +107,13 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['created'])
         self.assertTrue(len(data['questions']))
 
-    def test_405_if_question_creation_not_allowed(self):
-        res = self.client().post('questions/1000')
+    def test_422_if_question_creation_not_allowed(self):
+        res = self.client().post('questions', json=self.bad_question)
         data = json.loads(res.data)
 
-        self.assertEqual(res.status_code, 405)
+        self.assertEqual(res.status_code, 422)
         self.assertEqual(data['success'], False)
-        self.assertEqual(data['message'], 'method not allowed')
+        self.assertEqual(data['message'], 'unprocessable')
 
 # Make the tests conveniently executable
 if __name__ == "__main__":
