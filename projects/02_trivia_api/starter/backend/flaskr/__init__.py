@@ -133,6 +133,34 @@ def create_app(test_config=None):
     the form will clear and the question will appear at the end of the last page
     of the questions list in the "List" tab.
     """
+    @app.route('/questions', methods=['POST'])
+    def create_question():
+        body = request.get_json()
+
+        question_text = body.get('question', None)
+        answer = body.get('answer', None)
+        category = body.get('category', 1)
+        difficulty = body.get('difficulty', 1)
+
+        try:
+            question = Question(question=question_text,
+                                answer=answer,
+                                category=category,
+                                difficulty=difficulty)
+            question.insert()
+
+            selection = Question.query.order_by(Question.id).all()
+            current_questions = paginate_questions(request, selection)
+
+            return jsonify({
+                'success': True,
+                'created': question.id,
+                'questions': current_questions,
+                'total_questions': len(selection)
+            })
+
+        except:
+            abort(422)
 
     """
     @TODO:
@@ -180,6 +208,14 @@ def create_app(test_config=None):
             'error': 404,
             'message': 'resource not found'
         }), 404
+
+    @app.errorhandler(405)
+    def unprocessable(error):
+        return jsonify({
+            'success': False,
+            'error': 405,
+            'message': 'method not allowed'
+        }), 422
 
     @app.errorhandler(422)
     def unprocessable(error):
