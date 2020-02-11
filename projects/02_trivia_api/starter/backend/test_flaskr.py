@@ -60,25 +60,28 @@ class TriviaTestCase(unittest.TestCase):
         self. assertEqual(data['message'], 'resource not found')
 
     def test_delete_question(self):
-        res = self.client().delete('/questions/1')
+        new_question = Question(question='Are you happy?',
+                                answer='Yes', category=2, difficulty=3)
+        new_question.insert()
+        res = self.client().delete('/questions/' + str(new_question.id))
         data = json.loads(res.data)
 
-        question = Question.query.filter(Question.id == 1).one_or_none()
+        deleted_question = Question.query.filter(Question.id == new_question.id).one_or_none()
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
-        self.assertEqual(data['deleted'], 1)
+        self.assertEqual(data['deleted'], new_question.id)
         self.assertTrue(data['total_questions'])
         self.assertTrue(len(data['questions']))
-        self.assertEqual(question, None)
+        self.assertEqual(deleted_question, None)
 
-    def test_422_if_question_does_not_exist(self):
+    def test_404_if_question_does_not_exist(self):
         res = self.client().delete('/books/1000')
         data = json.loads(res.data)
 
-        self.assertEqual(res.status_code, 422)
+        self.assertEqual(res.status_code, 404)
         self.assertEqual(data['success'], False)
-        self.assertEqual(data['message'], 'unprocessable')
+        self.assertEqual(data['message'], 'resource not found')
 
 
 # Make the tests conveniently executable
