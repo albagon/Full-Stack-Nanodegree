@@ -182,6 +182,19 @@ def create_app(test_config=None):
     category to be shown.
     """
 
+    @app.route('/categories/<int:category_id>/questions')
+    def get_questions_per_category(category_id):
+        questions = Question.query.filter(Question.category == category_id).all()
+
+        if len(questions) == 0:
+            abort(404)
+
+        formatted_questions = [question.format() for question in questions]
+        return jsonify({
+            'success': True,
+            'questions': formatted_questions,
+            'total_questions': len(formatted_questions)
+        })
 
     """
     @TODO:
