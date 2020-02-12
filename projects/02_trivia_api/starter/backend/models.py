@@ -38,6 +38,10 @@ class Question(db.Model):
         self.category = category
         self.difficulty = difficulty
 
+    def __ne__(self, other):
+        #This method will help compare two Question objects based on id only
+        return self.id != other.id
+
     def insert(self):
         db.session.add(self)
         db.session.commit()

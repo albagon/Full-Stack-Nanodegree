@@ -43,6 +43,26 @@ class TriviaTestCase(unittest.TestCase):
         self.absent_term = {
             'searchTerm': 'xxx'
         }
+        self.quiz = {
+            'previous_questions': [{
+                'id': 1,
+                'question': 'What is the first month of the year?',
+                'answer': 'January',
+                'category': 1,
+                'difficulty': 1
+            }],
+            'quiz_category': 1
+        }
+        self.wrong_quiz = {
+            'previous_questions': [{
+                'id': 1,
+                'question': 'What is the first month of the year?',
+                'answer': 'January',
+                'category': 1,
+                'difficulty': 1
+            }],
+            'quiz_category': 10
+        }
 
     def tearDown(self):
         """Executed after reach test"""
@@ -156,6 +176,22 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(len(data['questions']), 0)
         self.assertFalse(data['total_questions'])
         self.assertEqual(data['current_category'], None)
+
+    def test_quiz_find_next_question(self):
+        res = self.client().post('/quizzes', json=self.quiz)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['question'])
+
+    def test_quiz_wrong_category(self):
+        res = self.client().post('/quizzes', json=self.wrong_quiz)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(data['question'], None)
 
 # Make the tests conveniently executable
 if __name__ == "__main__":
