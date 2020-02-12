@@ -170,7 +170,7 @@ def create_app(test_config=None):
             abort(422)
 
     """
-    @TODO:
+    @DONE:
     Create a POST endpoint to get questions based on a search term.
     It should return any questions for whom the search term
     is a substring of the question.
@@ -187,7 +187,7 @@ def create_app(test_config=None):
 
         if term == '':
             abort(422)
-            
+
         questions = Question.query.filter(Question.question.ilike('%'+term+'%')).all()
         formatted_questions = [question.format() for question in questions]
 
@@ -202,7 +202,7 @@ def create_app(test_config=None):
         })
 
     """
-    @TODO:
+    @DONE:
     Create a GET endpoint to get questions based on category.
 
     TEST: In the "List" tab / main screen, clicking on one of the
@@ -225,7 +225,7 @@ def create_app(test_config=None):
         })
 
     """
-    @TODO:
+    @DONE:
     Create a POST endpoint to get questions to play the quiz.
     This endpoint should take category and previous questions parameters
     and return a random question within the given category,
@@ -242,21 +242,24 @@ def create_app(test_config=None):
         quiz_category = body.get('quiz_category', 0)
         current_question = None
 
-        category_questions = Question.query.filter(Question.category == quiz_category).all()
-        formatted_cat_questions = [question.format() for question in category_questions]
+        if quiz_category['id'] == 0:
+            category_questions = Question.query.all()
+        else:
+            category_questions = Question.query.filter(Question.category == quiz_category['id']).all()
 
-        for cat_question in formatted_cat_questions:
-            if current_question == None:
-                #We haven't found a question yet
-                for prev_question in previous_questions:
-                    #Compare previous question vs category question
-                    if cat_question.__ne__(prev_question):
-                        #This question hasn't been played
-                        current_question = cat_question
-                        break
-            else:
-                #We found a new question, stop looking
-                break
+        formatted_cat_questions = [question.format() for question in category_questions]
+        random.shuffle(formatted_cat_questions)
+
+        if len(previous_questions) > 0:
+            #We need to find a suitable question
+            for cat_question in formatted_cat_questions:
+                if cat_question['id'] not in previous_questions:
+                    #This question hasn't been played
+                    current_question = cat_question
+                    break
+        else:
+            #Return the first question from the category we are playing
+            current_question = formatted_cat_questions[0]
 
         return jsonify({
             'success': True,
@@ -264,7 +267,7 @@ def create_app(test_config=None):
         })
 
     """
-    @TODO:
+    @DONE:
     Create error handlers for all expected errors
     including 404 and 422.
     """

@@ -54,7 +54,10 @@ class TriviaTestCase(unittest.TestCase):
                 'category': 1,
                 'difficulty': 1
             }],
-            'quiz_category': 1
+            'quiz_category': {
+                'id': 1,
+                'type': 'Science'
+            }
         }
         self.wrong_quiz = {
             'previous_questions': [{
@@ -64,7 +67,10 @@ class TriviaTestCase(unittest.TestCase):
                 'category': 1,
                 'difficulty': 1
             }],
-            'quiz_category': 10
+            'quiz_category': {
+                'id': 10,
+                'type': 'Science'
+            }
         }
 
     def tearDown(self):
