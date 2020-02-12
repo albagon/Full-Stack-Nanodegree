@@ -84,7 +84,10 @@ def create_app(test_config=None):
             abort(404)
 
         categories = Category.query.all()
-        formatted_categories = [category.format() for category in categories]
+        formatted_categories = [None] * (len(categories) + 1)
+
+        for category in categories:
+            formatted_categories[category.id] = category.type
 
         return jsonify({
             'success': True,
