@@ -126,11 +126,8 @@ def create_app(test_config=None):
         """
         try:
             question = Question.query.filter(Question.id == question_id).one_or_none()
-
-            if question is None:
-                abort(404)
-
             question.delete()
+
             selection = Question.query.order_by(Question.id).all()
             current_questions = paginate_questions(request, selection)
 
@@ -141,8 +138,8 @@ def create_app(test_config=None):
                 'total_questions': len(selection)
             })
 
-        except:
-            abort(422)
+        except Exception:
+            abort(404)
 
     @app.route('/questions', methods=['POST'])
     def create_question():

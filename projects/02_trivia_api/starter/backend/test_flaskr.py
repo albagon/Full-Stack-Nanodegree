@@ -125,7 +125,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(deleted_question, None)
 
     def test_404_if_question_does_not_exist(self):
-        res = self.client().delete('/books/1000')
+        res = self.client().delete('/questions/1000')
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 404)
