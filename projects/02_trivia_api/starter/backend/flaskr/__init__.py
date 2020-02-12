@@ -131,7 +131,7 @@ def create_app(test_config=None):
             abort(422)
 
     """
-    @TODO:
+    @DONE:
     Create an endpoint to POST a new question,
     which will require the question and answer text,
     category, and difficulty score.
@@ -185,6 +185,9 @@ def create_app(test_config=None):
         term = body.get('searchTerm', '')
         current_category = None
 
+        if term == '':
+            abort(422)
+            
         questions = Question.query.filter(Question.question.ilike('%'+term+'%')).all()
         formatted_questions = [question.format() for question in questions]
 

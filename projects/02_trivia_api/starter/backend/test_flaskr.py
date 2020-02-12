@@ -43,6 +43,9 @@ class TriviaTestCase(unittest.TestCase):
         self.absent_term = {
             'searchTerm': 'xxx'
         }
+        self.empty_term = {
+            'searchTerm': ''
+        }
         self.quiz = {
             'previous_questions': [{
                 'id': 1,
@@ -176,6 +179,14 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(len(data['questions']), 0)
         self.assertFalse(data['total_questions'])
         self.assertEqual(data['current_category'], None)
+
+    def test_searching_with_empty_term(self):
+        res = self.client().post('/searches', json=self.empty_term)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'unprocessable')
 
     def test_quiz_find_next_question(self):
         res = self.client().post('/quizzes', json=self.quiz)
