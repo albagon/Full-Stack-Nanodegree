@@ -181,7 +181,7 @@ def create_app(test_config=None):
                 'total_questions': len(selection)
             })
 
-        except:
+        except Exception:
             abort(422)
 
     @app.route('/searches', methods=['POST'])
