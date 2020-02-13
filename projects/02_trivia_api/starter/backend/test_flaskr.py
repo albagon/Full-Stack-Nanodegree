@@ -100,13 +100,18 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['total_questions'])
         self.assertTrue(len(data['questions']))
 
-    def test_404_sent_requesting_beyond_valid_page(self):
+    def test_200_sent_requesting_beyond_valid_page(self):
+        """ This test was changed from 404 to 200 because the functionality
+        of the GET questions route changed. Instead of aborting with a 404 when
+        the list of questions is empty, the user will be presented with an empty
+        view but with the correct number of pages.
+        """
         res = self.client().get('/questions?page=1000')
         data = json.loads(res.data)
 
-        self.assertEqual(res.status_code, 404)
-        self.assertEqual(data['success'], False)
-        self. assertEqual(data['message'], 'resource not found')
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['total_questions'])
 
     def test_delete_question(self):
         new_question = Question(question='Are you happy?',
