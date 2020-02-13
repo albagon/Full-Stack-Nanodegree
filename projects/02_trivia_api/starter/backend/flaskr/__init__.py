@@ -79,7 +79,7 @@ def create_app(test_config=None):
             success (bool) -- a True value indicating the request was successful.
             questions (list) -- list of questions in this page.
             total_questions (int) -- number of questions in this page.
-            current_category (int) -- category id of the 1st question in page.
+            current_category (int) -- 1 or category id of 1st question in page.
             categories (list) -- list of all available categories.
 
         TEST: At this point, when the user starts the application she should see
@@ -91,7 +91,9 @@ def create_app(test_config=None):
         current_questions = paginate_questions(request, selection)
 
         if len(current_questions) == 0:
-            abort(404)
+            category_id = 1
+        else:
+            category_id = current_questions[0]['category']
 
         categories = Category.query.all()
         formatted_categories = [None] * (len(categories) + 1)
@@ -103,7 +105,7 @@ def create_app(test_config=None):
             'success': True,
             'questions': current_questions,
             'total_questions': len(selection),
-            'current_category': current_questions[0]['category'],
+            'current_category': category_id,
             'categories': formatted_categories
         })
 
