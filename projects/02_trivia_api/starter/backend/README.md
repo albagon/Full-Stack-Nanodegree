@@ -67,16 +67,14 @@ One note before you delve into your tasks: for each endpoint you are expected to
 9. Create error handlers for all expected errors including 400, 404, 422 and 500.
 
 # API Reference
-----------------
+
 ## Introduction
 Build your own Trivia Game by getting, creating and deleting Questions from your PosgrestSQL database. Decide whether you want to have a list of all the available Questions or only the ones that belong to a specific Category.
 
-----------------
 ## Getting Started
 - **Base URL:** At the moment, this app is not hosted as a base URL. This means it can only be run locally at the default location `http://127.0.0.1:5000/`
 - **API Keys /Authentication:** This version of the app does not require API Keys or Authentication.
 
----------------
 ## Errors
 Errors are returned as JSON objects in the following format:
 ```sh
@@ -93,7 +91,6 @@ When requests fail, the API will return 5 error types:
 - 422: Unprocessable
 - 500: Internal server error
 
---------------
 ## Resource endpoint library
 ### GET /categories
 - Returns a dictionary of categories.
