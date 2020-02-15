@@ -468,17 +468,17 @@ When requests fail, the API will return 5 error types:
 
 ### POST /quizzes
 - Returns an unanswered question in current category.
-- **Arguments**: A json object containing the quiz category.
+- **Arguments**: A json object containing the quiz category and a list of previous questions.
 - **Returns**: Returns an unanswered question in current category.
-- **Sample request and response**: `curl http://127.0.0.1:5000/quizzes -X POST -H "Content-Type: application/json" -d '{"quiz_category":{"type":"Science","id":1}}'`
+- **Sample request and response**: `curl http://127.0.0.1:5000/quizzes -X POST -H "Content-Type: application/json" -d '{"quiz_category":{"type":"Science","id":1},"previous_questions":[{"answer":"Alexander Fleming","category": 1,"difficulty": 3,"id": 21,"question":"Who discovered penicillin?"}]}'`
 ```sh
 {
   "question": {
-    "answer": "Neil Armstrong",
+    "answer": "The Liver",
     "category": 1,
-    "difficulty": 2,
-    "id": 63,
-    "question": "What is the name?"
+    "difficulty": 4,
+    "id": 20,
+    "question": "What is the heaviest organ in the human body?"
   },
   "success": true
 }
