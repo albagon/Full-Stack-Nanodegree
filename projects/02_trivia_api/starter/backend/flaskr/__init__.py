@@ -308,6 +308,13 @@ def create_app(test_config=None):
         error (int) -- the status code.
         message (string) -- message to the user.
     """
+    @app.errorhandler(400)
+    def bad_request(error):
+        return jsonify({
+            'success': False,
+            'error': 400,
+            'message': 'bad request'
+        }), 400
 
     @app.errorhandler(404)
     def not_found(error):
