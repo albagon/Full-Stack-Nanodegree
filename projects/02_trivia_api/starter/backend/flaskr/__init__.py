@@ -54,12 +54,11 @@ def create_app(test_config=None):
 
         Return:
             success (bool) -- a True value indicating the request was successful.
-            categories (list) -- list of all available categories.
+            categories (dict) -- dictionary with all available categories.
             total_categories (int) -- number of categories available.
         """
         categories = Category.query.all()
-        formatted_categories = [None] * (len(categories) + 1)
-
+        formatted_categories = {}
         for category in categories:
             formatted_categories[category.id] = category.type
 
@@ -80,7 +79,7 @@ def create_app(test_config=None):
             questions (list) -- list of questions in this page.
             total_questions (int) -- number of questions in this page.
             current_category (int) -- 1 or category id of 1st question in page.
-            categories (list) -- list of all available categories.
+            categories (dict) -- dictionary with all available categories.
 
         TEST: At this point, when the user starts the application she should see
         questions and categories generated (10 questions per page) and
@@ -96,8 +95,7 @@ def create_app(test_config=None):
             category_id = current_questions[0]['category']
 
         categories = Category.query.all()
-        formatted_categories = [None] * (len(categories) + 1)
-
+        formatted_categories = {}
         for category in categories:
             formatted_categories[category.id] = category.type
 
