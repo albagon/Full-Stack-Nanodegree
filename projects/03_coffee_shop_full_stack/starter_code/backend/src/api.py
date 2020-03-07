@@ -53,14 +53,32 @@ def drinks():
         abort(404)
 
 '''
-@TODO implement endpoint
-    GET /drinks-detail
-        it should require the 'get:drinks-detail' permission
+GET /drinks-detail
+@TODO   it should require the 'get:drinks-detail' permission
         it should contain the drink.long() data representation
-    returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
-        or appropriate status code indicating reason for failure
+    returns status code 200 and json {"success": True, "drinks": drinks} where
+    drinks is the list of drinks or appropriate status code indicating reason
+    for failure
 '''
+@app.route('/drinks-detail')
+def drinks_detail():
+    try:
+        drinks = Drink.query.all()
+        drinks_detail = []
+        if len(drinks) != 0:
+            for drink in drinks:
+                # We need to replace all single quotes with double quotes in
+                # order to make the recipe valid as a JSON string.
+                drink.recipe = drink.recipe.replace("\'", "\"")
+                drinks_detail.append(drink.long())
 
+        return jsonify({
+                "success": True,
+                "drinks": drinks_detail
+            })
+
+    except Exception:
+        abort(404)
 
 '''
 @TODO implement endpoint
