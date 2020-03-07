@@ -12,22 +12,45 @@ setup_db(app)
 CORS(app)
 
 '''
-@TODO uncomment the following line to initialize the datbase
 !! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
 !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
 '''
-# db_drop_and_create_all()
+db_drop_and_create_all()
+
+# Insert a couple of records so we can test our endpoints
+chai = Drink(title="Chai Latte", recipe=str([{"color": "996633", "name":"chai", "parts":1}, {"color": "f9f2ec", "name":"milk", "parts":2}]))
+chai.insert()
+cortado = Drink(title="Cortado", recipe=str([{"color": "6b390e", "name":"coffee", "parts":1}, {"color": "f9f2ec", "name":"milk", "parts":1}]))
+cortado.insert()
 
 ## ROUTES
 '''
-@TODO implement endpoint
-    GET /drinks
-        it should be a public endpoint
-        it should contain only the drink.short() data representation
-    returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
-        or appropriate status code indicating reason for failure
+GET /drinks
+    it should be a public endpoint
+    it should contain only the drink.short() data representation
+    returns status code 200 and json {"success": True, "drinks": drinks} where
+    drinks is the list of drinks or appropriate status code indicating reason
+    for failure
 '''
+@app.route('/drinks')
+def drinks():
+    try:
+        drinks = Drink.query.all()
+        drinks_short = []
+        if len(drinks) != 0:
+            for drink in drinks:
+                # We need to replace all single quotes with double quotes in
+                # order to make the recipe valid as a JSON string.
+                drink.recipe = drink.recipe.replace("\'", "\"")
+                drinks_short.append(drink.short())
 
+        return jsonify({
+                "success": True,
+                "drinks": drinks_short
+            })
+
+    except Exception:
+        abort(404)
 
 '''
 @TODO implement endpoint
@@ -82,7 +105,7 @@ Example error handling for unprocessable entity
 @app.errorhandler(422)
 def unprocessable(error):
     return jsonify({
-                    "success": False, 
+                    "success": False,
                     "error": 422,
                     "message": "unprocessable"
                     }), 422
@@ -91,7 +114,7 @@ def unprocessable(error):
 @TODO implement error handlers using the @app.errorhandler(error) decorator
     each error handler should return (with approprate messages):
              jsonify({
-                    "success": False, 
+                    "success": False,
                     "error": 404,
                     "message": "resource not found"
                     }), 404
@@ -100,11 +123,11 @@ def unprocessable(error):
 
 '''
 @TODO implement error handler for 404
-    error handler should conform to general task above 
+    error handler should conform to general task above
 '''
 
 
 '''
 @TODO implement error handler for AuthError
-    error handler should conform to general task above 
+    error handler should conform to general task above
 '''
