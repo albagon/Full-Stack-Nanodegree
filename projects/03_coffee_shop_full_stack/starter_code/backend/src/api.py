@@ -33,7 +33,7 @@ GET /drinks
     for failure
 '''
 @app.route('/drinks')
-def drinks():
+def get_drinks():
     try:
         drinks = Drink.query.all()
         drinks_short = []
@@ -61,7 +61,7 @@ GET /drinks-detail
     for failure
 '''
 @app.route('/drinks-detail')
-def drinks_detail():
+def get_drinks_detail():
     try:
         drinks = Drink.query.all()
         drinks_detail = []
@@ -81,15 +81,36 @@ def drinks_detail():
         abort(404)
 
 '''
-@TODO implement endpoint
-    POST /drinks
-        it should create a new row in the drinks table
-        it should require the 'post:drinks' permission
+POST /drinks
+    it should create a new row in the drinks table
+@TODO   it should require the 'post:drinks' permission
         it should contain the drink.long() data representation
-    returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
-        or appropriate status code indicating reason for failure
+    returns status code 200 and json {"success": True, "drinks": drink} where
+    drink an array containing only the newly created drink or appropriate status
+    code indicating reason for failure
 '''
+@app.route('/drinks', methods=['POST'])
+def create_drink():
+    body = request.get_json()
+    title = body.get('title', None)
+    recipe = body.get('recipe', None)
 
+    try:
+        drink = Drink(title=title, recipe=str(recipe))
+        drink.insert()
+        # We need to replace all single quotes with double quotes in
+        # order to make the recipe valid as a JSON string.
+        drink.recipe = drink.recipe.replace("\'", "\"")
+        drink_list = []
+        drink_list.append(drink.long())
+
+        return jsonify({
+                "success": True,
+                "drinks": drink_list
+            })
+
+    except Exception:
+        abort(422)
 
 '''
 @TODO implement endpoint
