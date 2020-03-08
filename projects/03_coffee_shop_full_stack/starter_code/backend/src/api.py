@@ -18,9 +18,9 @@ CORS(app)
 db_drop_and_create_all()
 
 # Insert a couple of records so we can test our endpoints
-chai = Drink(title="Chai Latte", recipe=str([{"color": "996633", "name":"chai", "parts":1}, {"color": "f9f2ec", "name":"milk", "parts":2}]))
+chai = Drink(title="Chai Latte", recipe=str([{"color": "#f1d6ab", "name":"milk", "parts":2}, {"color": "#a5642a", "name":"chai", "parts":1}]))
 chai.insert()
-cortado = Drink(title="Cortado", recipe=str([{"color": "6b390e", "name":"coffee", "parts":1}, {"color": "f9f2ec", "name":"milk", "parts":1}]))
+cortado = Drink(title="Cortado", recipe=str([{"color": "#f1d6ab", "name":"milk", "parts":1}, {"color": "#824f22", "name":"coffee", "parts":2}]))
 cortado.insert()
 
 ## ROUTES
