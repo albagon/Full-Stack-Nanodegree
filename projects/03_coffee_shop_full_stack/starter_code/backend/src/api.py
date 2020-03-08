@@ -113,17 +113,43 @@ def create_drink():
         abort(422)
 
 '''
-@TODO implement endpoint
-    PATCH /drinks/<id>
-        where <id> is the existing model id
-        it should respond with a 404 error if <id> is not found
-        it should update the corresponding row for <id>
-        it should require the 'patch:drinks' permission
-        it should contain the drink.long() data representation
-    returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
-        or appropriate status code indicating reason for failure
+PATCH /drinks/<id>
+    where <id> is the existing model id
+    it should respond with a 404 error if <id> is not found
+    it should update the corresponding row for <id>
+@TODO    it should require the 'patch:drinks' permission
+    it should contain the drink.long() data representation
+    returns status code 200 and json {"success": True, "drinks": drink} where
+    drink an array containing only the updated drink or appropriate status code
+    indicating reason for failure
 '''
+@app.route('/drinks/<int:id>', methods=['PATCH'])
+def update_drink(id):
+    body = request.get_json()
+    title = body.get('title', None)
+    recipe = body.get('recipe', None)
 
+    try:
+        drink = Drink.query.filter(Drink.id == id).one_or_none()
+        if drink == None:
+            abort(404)
+        else:
+            drink.title = title
+            drink.recipe = str(recipe)
+            drink.update()
+            # We need to replace all single quotes with double quotes in
+            # order to make the recipe valid as a JSON string.
+            drink.recipe = drink.recipe.replace("\'", "\"")
+            drink_list = []
+            drink_list.append(drink.long())
+
+            return jsonify({
+                    "success": True,
+                    "drinks": drink_list
+                })
+
+    except Exception:
+        abort(404)
 
 '''
 @TODO implement endpoint
