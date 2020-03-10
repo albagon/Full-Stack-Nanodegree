@@ -3,9 +3,33 @@ from flask import Flask, request, jsonify, abort
 from sqlalchemy import exc
 import json
 from flask_cors import CORS
+from functools import wraps
 
 from .database.models import db_drop_and_create_all, setup_db, Drink
 from .auth.auth import AuthError, requires_auth
+
+''' This function gets the permission in jwt authorization header
+'''
+def get_token_auth_header():
+    if 'Authorization' not in request.headers:
+        abort(401)
+
+    auth_header = request.headers['Authorization']
+    header_parts = auth_header.split(' ')
+
+    if len(header_parts) != 2:
+        abort(401)
+    elif header_parts[0].lower() != 'bearer':
+        abort(401)
+    return header_parts[1]
+
+def requires_auth(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        jwt = get_token_auth_header()
+        return f(jwt, *args, **kwargs)
+    return wrapper
+
 
 app = Flask(__name__)
 setup_db(app)
@@ -54,89 +78,56 @@ def get_drinks():
 
 '''
 GET /drinks-detail
-@TODO   it should require the 'get:drinks-detail' permission
-        it should contain the drink.long() data representation
+    it should require the 'get:drinks-detail' permission
+    it should contain the drink.long() data representation
     returns status code 200 and json {"success": True, "drinks": drinks} where
     drinks is the list of drinks or appropriate status code indicating reason
     for failure
 '''
 @app.route('/drinks-detail')
-def get_drinks_detail():
-    try:
-        drinks = Drink.query.all()
-        drinks_detail = []
-        if len(drinks) != 0:
-            for drink in drinks:
-                # We need to replace all single quotes with double quotes in
-                # order to make the recipe valid as a JSON string.
-                drink.recipe = drink.recipe.replace("\'", "\"")
-                drinks_detail.append(drink.long())
+@requires_auth
+def get_drinks_detail(jwt):
+    if jwt == 'get:drinks-detail':
+        try:
+            drinks = Drink.query.all()
+            drinks_detail = []
+            if len(drinks) != 0:
+                for drink in drinks:
+                    # We need to replace all single quotes with double quotes in
+                    # order to make the recipe valid as a JSON string.
+                    drink.recipe = drink.recipe.replace("\'", "\"")
+                    drinks_detail.append(drink.long())
 
-        return jsonify({
-                "success": True,
-                "drinks": drinks_detail
-            })
+            return jsonify({
+                    "success": True,
+                    "drinks": drinks_detail
+                })
 
-    except Exception:
-        abort(404)
+        except Exception:
+            abort(404)
+    else:
+        abort(401)
 
 '''
 POST /drinks
     it should create a new row in the drinks table
-@TODO   it should require the 'post:drinks' permission
-        it should contain the drink.long() data representation
+    it should require the 'post:drinks' permission
+    it should contain the drink.long() data representation
     returns status code 200 and json {"success": True, "drinks": drink} where
     drink an array containing only the newly created drink or appropriate status
     code indicating reason for failure
 '''
 @app.route('/drinks', methods=['POST'])
-def create_drink():
-    body = request.get_json()
-    title = body.get('title', None)
-    recipe = body.get('recipe', None)
+@requires_auth
+def create_drink(jwt):
+    if jwt == 'post:drinks':
+        body = request.get_json()
+        title = body.get('title', None)
+        recipe = body.get('recipe', None)
 
-    try:
-        drink = Drink(title=title, recipe=str(recipe))
-        drink.insert()
-        # We need to replace all single quotes with double quotes in
-        # order to make the recipe valid as a JSON string.
-        drink.recipe = drink.recipe.replace("\'", "\"")
-        drink_list = []
-        drink_list.append(drink.long())
-
-        return jsonify({
-                "success": True,
-                "drinks": drink_list
-            })
-
-    except Exception:
-        abort(422)
-
-'''
-PATCH /drinks/<id>
-    where <id> is the existing model id
-    it should respond with a 404 error if <id> is not found
-    it should update the corresponding row for <id>
-@TODO    it should require the 'patch:drinks' permission
-    it should contain the drink.long() data representation
-    returns status code 200 and json {"success": True, "drinks": drink} where
-    drink an array containing only the updated drink or appropriate status code
-    indicating reason for failure
-'''
-@app.route('/drinks/<int:id>', methods=['PATCH'])
-def update_drink(id):
-    body = request.get_json()
-    title = body.get('title', None)
-    recipe = body.get('recipe', None)
-
-    try:
-        drink = Drink.query.filter(Drink.id == id).one_or_none()
-        if drink == None:
-            abort(404)
-        else:
-            drink.title = title
-            drink.recipe = str(recipe)
-            drink.update()
+        try:
+            drink = Drink(title=title, recipe=str(recipe))
+            drink.insert()
             # We need to replace all single quotes with double quotes in
             # order to make the recipe valid as a JSON string.
             drink.recipe = drink.recipe.replace("\'", "\"")
@@ -148,35 +139,84 @@ def update_drink(id):
                     "drinks": drink_list
                 })
 
-    except Exception:
-        abort(404)
+        except Exception:
+            abort(422)
+    else:
+        abort(401)
+
+'''
+PATCH /drinks/<id>
+    where <id> is the existing model id
+    it should respond with a 404 error if <id> is not found
+    it should update the corresponding row for <id>
+    it should require the 'patch:drinks' permission
+    it should contain the drink.long() data representation
+    returns status code 200 and json {"success": True, "drinks": drink} where
+    drink an array containing only the updated drink or appropriate status code
+    indicating reason for failure
+'''
+@app.route('/drinks/<int:id>', methods=['PATCH'])
+@requires_auth
+def update_drink(jwt, id):
+    if jwt == 'patch:drinks':
+        body = request.get_json()
+        title = body.get('title', None)
+        recipe = body.get('recipe', None)
+
+        try:
+            drink = Drink.query.filter(Drink.id == id).one_or_none()
+            if drink == None:
+                abort(404)
+            else:
+                drink.title = title
+                drink.recipe = str(recipe)
+                drink.update()
+                # We need to replace all single quotes with double quotes in
+                # order to make the recipe valid as a JSON string.
+                drink.recipe = drink.recipe.replace("\'", "\"")
+                drink_list = []
+                drink_list.append(drink.long())
+
+                return jsonify({
+                        "success": True,
+                        "drinks": drink_list
+                    })
+
+        except Exception:
+            abort(404)
+    else:
+        abort(401)
 
 '''
 DELETE /drinks/<id>
     where <id> is the existing model id
     it should respond with a 404 error if <id> is not found
     it should delete the corresponding row for <id>
-@TODO    it should require the 'delete:drinks' permission
+    it should require the 'delete:drinks' permission
     returns status code 200 and json {"success": True, "delete": id} where id is
     the id of the deleted record or appropriate status code indicating reason
     for failure
 '''
 @app.route('/drinks/<int:id>', methods=['DELETE'])
-def delete_drink(id):
-    try:
-        drink = Drink.query.filter(Drink.id == id).one_or_none()
-        if drink == None:
+@requires_auth
+def delete_drink(jwt, id):
+    if jwt == 'delete:drinks':
+        try:
+            drink = Drink.query.filter(Drink.id == id).one_or_none()
+            if drink == None:
+                abort(404)
+            else:
+                drink.delete()
+
+                return jsonify({
+                        "success": True,
+                        "delete": id
+                    })
+
+        except Exception:
             abort(404)
-        else:
-            drink.delete()
-
-            return jsonify({
-                    "success": True,
-                    "delete": id
-                })
-
-    except Exception:
-        abort(404)
+    else:
+        abort(401)
 
 ## Error Handling
 '''
