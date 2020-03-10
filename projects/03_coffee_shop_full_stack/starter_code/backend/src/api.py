@@ -257,3 +257,10 @@ def not_found(error):
 @TODO implement error handler for AuthError
     error handler should conform to general task above
 '''
+@app.errorhandler(401)
+def unauthorized(error):
+    return jsonify({
+                    "success": False,
+                    "error": 401,
+                    "message": "unauthorized"
+                    }), 401
