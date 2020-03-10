@@ -4,11 +4,89 @@ from sqlalchemy import exc
 import json
 from flask_cors import CORS
 from functools import wraps
+from jose import jwt
+from urllib.request import urlopen
 
 from .database.models import db_drop_and_create_all, setup_db, Drink
 from .auth.auth import AuthError, requires_auth
 
-''' This function gets the permission in jwt authorization header
+# Configuration variables for Auth0
+AUTH0_DOMAIN = 'full.eu.auth0.com'
+ALGORITHMS = ['RS256']
+API_AUDIENCE = 'drinks'
+
+'''
+AuthError Exception
+A standardized way to communicate auth failure modes
+'''
+class AuthError(Exception):
+    def __init__(self, error, status_code):
+        self.error = error
+        self.status_code = status_code
+
+## Auth Header
+def verify_decode_jwt(token):
+    # GET THE PUBLIC KEY FROM AUTH0
+    jsonurl = urlopen(f'https://{AUTH0_DOMAIN}/.well-known/jwks.json')
+    jwks = json.loads(jsonurl.read())
+
+    # GET THE DATA IN THE HEADER
+    unverified_header = jwt.get_unverified_header(token)
+
+    # CHOOSE OUR KEY
+    rsa_key = {}
+    if 'kid' not in unverified_header:
+        raise AuthError({
+            'code': 'invalid_header',
+            'description': 'Authorization malformed.'
+        }, 401)
+
+    for key in jwks['keys']:
+        if key['kid'] == unverified_header['kid']:
+            rsa_key = {
+                'kty': key['kty'],
+                'kid': key['kid'],
+                'use': key['use'],
+                'n': key['n'],
+                'e': key['e']
+            }
+
+    # Finally, verify!!!
+    if rsa_key:
+        try:
+            # USE THE KEY TO VALIDATE THE JWT
+            payload = jwt.decode(
+                token,
+                rsa_key,
+                algorithms=ALGORITHMS,
+                audience=API_AUDIENCE,
+                issuer='https://' + AUTH0_DOMAIN + '/'
+            )
+
+            return payload
+
+        except jwt.ExpiredSignatureError:
+            raise AuthError({
+                'code': 'token_expired',
+                'description': 'Token expired.'
+            }, 401)
+
+        except jwt.JWTClaimsError:
+            raise AuthError({
+                'code': 'invalid_claims',
+                'description': 'Incorrect claims. Please, check the audience and issuer.'
+            }, 401)
+        except Exception:
+            raise AuthError({
+                'code': 'invalid_header',
+                'description': 'Unable to parse authentication token.'
+            }, 400)
+    raise AuthError({
+                'code': 'invalid_header',
+                'description': 'Unable to find the appropriate key.'
+            }, 400)
+
+''' This function gets the jwt token from the Authorization header
 '''
 def get_token_auth_header():
     if 'Authorization' not in request.headers:
@@ -23,13 +101,26 @@ def get_token_auth_header():
         abort(401)
     return header_parts[1]
 
-def requires_auth(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        jwt = get_token_auth_header()
-        return f(jwt, *args, **kwargs)
-    return wrapper
+def check_permissions(permission, payload):
+    if 'permissions' not in payload:
+        abort(400)
+    if permission not in payload['permissions']:
+        abort(403)
+    return True
 
+def requires_auth(permission=''):
+    def requires_auth_decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            jwt = get_token_auth_header()
+            try:
+                payload = verify_decode_jwt(jwt)
+            except:
+                abort(401)
+            check_permissions(permission, payload)
+            return f(payload, *args, **kwargs)
+        return wrapper
+    return requires_auth_decorator
 
 app = Flask(__name__)
 setup_db(app)
@@ -46,6 +137,8 @@ chai = Drink(title="Chai Latte", recipe=str([{"color": "#f1d6ab", "name":"milk",
 chai.insert()
 cortado = Drink(title="Cortado", recipe=str([{"color": "#f1d6ab", "name":"milk", "parts":1}, {"color": "#824f22", "name":"coffee", "parts":2}]))
 cortado.insert()
+tea = Drink(title="Mint Tea", recipe=str([{"color": "#cae2ca", "name":"mint", "parts":1}]))
+tea.insert()
 
 ## ROUTES
 '''
@@ -85,9 +178,9 @@ GET /drinks-detail
     for failure
 '''
 @app.route('/drinks-detail')
-@requires_auth
-def get_drinks_detail(jwt):
-    if jwt == 'get:drinks-detail':
+@requires_auth('get:drinks-detail')
+def get_drinks_detail(payload):
+    if payload:
         try:
             drinks = Drink.query.all()
             drinks_detail = []
@@ -118,9 +211,9 @@ POST /drinks
     code indicating reason for failure
 '''
 @app.route('/drinks', methods=['POST'])
-@requires_auth
-def create_drink(jwt):
-    if jwt == 'post:drinks':
+@requires_auth('post:drinks')
+def create_drink(payload):
+    if payload:
         body = request.get_json()
         title = body.get('title', None)
         recipe = body.get('recipe', None)
@@ -156,9 +249,9 @@ PATCH /drinks/<id>
     indicating reason for failure
 '''
 @app.route('/drinks/<int:id>', methods=['PATCH'])
-@requires_auth
-def update_drink(jwt, id):
-    if jwt == 'patch:drinks':
+@requires_auth('patch:drinks')
+def update_drink(payload, id):
+    if payload:
         body = request.get_json()
         title = body.get('title', None)
         recipe = body.get('recipe', None)
@@ -198,9 +291,9 @@ DELETE /drinks/<id>
     for failure
 '''
 @app.route('/drinks/<int:id>', methods=['DELETE'])
-@requires_auth
-def delete_drink(jwt, id):
-    if jwt == 'delete:drinks':
+@requires_auth('delete:drinks')
+def delete_drink(payload, id):
+    if payload:
         try:
             drink = Drink.query.filter(Drink.id == id).one_or_none()
             if drink == None:
@@ -220,6 +313,42 @@ def delete_drink(jwt, id):
 
 ## Error Handling
 '''
+    error handler for 401
+    error handler should conform to general task
+'''
+@app.errorhandler(401)
+def unauthorized(error):
+    return jsonify({
+                    "success": False,
+                    "error": 401,
+                    "message": "unauthorized"
+                    }), 401
+
+'''
+    error handler for 403
+    error handler should conform to general task
+'''
+@app.errorhandler(403)
+def forbidden(error):
+    return jsonify({
+                    "success": False,
+                    "error": 403,
+                    "message": "forbidden"
+                    }), 403
+
+'''
+    error handler for 404
+    error handler should conform to general task
+'''
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({
+                    "success": False,
+                    "error": 404,
+                    "message": "resource not found"
+                    }), 404
+
+'''
 Example error handling for unprocessable entity
 '''
 @app.errorhandler(422)
@@ -231,36 +360,11 @@ def unprocessable(error):
                     }), 422
 
 '''
-@TODO implement error handlers using the @app.errorhandler(error) decorator
-    each error handler should return (with approprate messages):
-             jsonify({
-                    "success": False,
-                    "error": 404,
-                    "message": "resource not found"
-                    }), 404
-
+    error handler for AuthError
+    error handler should conform to general task
 '''
-
-'''
-@TODO implement error handler for 404
-    error handler should conform to general task above
-'''
-@app.errorhandler(404)
-def not_found(error):
-    return jsonify({
-                    "success": False,
-                    "error": 404,
-                    "message": "resource not found"
-                    }), 404
-
-'''
-@TODO implement error handler for AuthError
-    error handler should conform to general task above
-'''
-@app.errorhandler(401)
-def unauthorized(error):
-    return jsonify({
-                    "success": False,
-                    "error": 401,
-                    "message": "unauthorized"
-                    }), 401
+@app.errorhandler(AuthError)
+def handle_auth_error(ex):
+    response = jsonify(ex.error)
+    response.status_code = ex.status_code
+    return response
