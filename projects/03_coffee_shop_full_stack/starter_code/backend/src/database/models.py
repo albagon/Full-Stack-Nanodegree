@@ -11,7 +11,7 @@ db = SQLAlchemy()
 
 '''
 setup_db(app)
-    binds a flask application and a SQLAlchemy service
+    Binds a flask application and a SQLAlchemy service.
 '''
 def setup_db(app):
     app.config["SQLALCHEMY_DATABASE_URI"] = database_path
@@ -21,9 +21,10 @@ def setup_db(app):
 
 '''
 db_drop_and_create_all()
-    drops the database tables and starts fresh
-    can be used to initialize a clean database
-    !!NOTE you can change the database_filename variable to have multiple verisons of a database
+    Drops the database tables and starts fresh.
+    Can be used to initialize a clean database.
+    !!NOTE you can change the database_filename variable to have multiple
+    verisons of a database.
 '''
 def db_drop_and_create_all():
     db.drop_all()
@@ -31,20 +32,20 @@ def db_drop_and_create_all():
 
 '''
 Drink
-a persistent drink entity, extends the base SQLAlchemy Model
+    A persistent drink entity, extends the base SQLAlchemy Model.
 '''
 class Drink(db.Model):
     # Autoincrementing, unique primary key
     id = Column(Integer().with_variant(Integer, "sqlite"), primary_key=True)
     # String Title
     title = Column(String(80), unique=True)
-    # the ingredients blob - this stores a lazy json blob
-    # the required datatype is [{'color': string, 'name':string, 'parts':number}]
+    # The ingredients blob - this stores a lazy json blob
+    # The required datatype is [{'color': string, 'name':string, 'parts':number}]
     recipe =  Column(String(180), nullable=False)
 
     '''
     short()
-        short form representation of the Drink model
+        Short form representation of the Drink model.
     '''
     def short(self):
         print(json.loads(self.recipe))
@@ -57,7 +58,7 @@ class Drink(db.Model):
 
     '''
     long()
-        long form representation of the Drink model
+        Long form representation of the Drink model.
     '''
     def long(self):
         return {
@@ -68,9 +69,9 @@ class Drink(db.Model):
 
     '''
     insert()
-        inserts a new model into a database
-        the model must have a unique name
-        the model must have a unique id or null id
+        Inserts a new model into a database.
+        The model must have a unique name.
+        The model must have a unique id or null id.
         EXAMPLE
             drink = Drink(title=req_title, recipe=req_recipe)
             drink.insert()
@@ -81,8 +82,8 @@ class Drink(db.Model):
 
     '''
     delete()
-        deletes a new model into a database
-        the model must exist in the database
+        Deletes a new model into a database.
+        The model must exist in the database.
         EXAMPLE
             drink = Drink(title=req_title, recipe=req_recipe)
             drink.delete()
@@ -93,8 +94,8 @@ class Drink(db.Model):
 
     '''
     update()
-        updates a new model into a database
-        the model must exist in the database
+        Updates a new model into a database.
+        The model must exist in the database.
         EXAMPLE
             drink = Drink.query.filter(Drink.id == id).one_or_none()
             drink.title = 'Black Coffee'
