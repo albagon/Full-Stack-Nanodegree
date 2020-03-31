@@ -74,21 +74,22 @@ The best way to understand the functionality of this app is by running it locall
 2. Build and run local development following the Development Setup steps below.
 
 3. Some of the key features of this app are:
-  -- It connects to a database in `config.py`. At the moment, it is configured to connect to a local database.
-  -- Using SQLAlchemy, we set up normalized models for the objects we support in our web app in the Models section of `app.py`.
-  -- It implements form submissions for creating new Venues, Artists, and Shows. There are proper constraints, powering the `/create` endpoints that serve the create form templates, to avoid duplicate or nonsensical form submissions. Submitting a form should creates proper new records in the database.
-  -- It implements the controllers for listing venues, artists, and shows.
-  -- It implements search, powering the `/search` endpoints that serve the application's search functionalities.
-  -- It serves venue and artist detail pages, powering the `<venue|artist>/<id>` endpoints that power the detail pages.
+  * It connects to a database in `config.py`. At the moment, it is configured to connect to a local database.
+  * Using SQLAlchemy, we set up normalized models for the objects we support in our web app in the Models section of `app.py`.
+  * It implements form submissions for creating new Venues, Artists, and Shows. There are proper constraints, powering the `/create` endpoints that serve the create form templates, to avoid duplicate or nonsensical form submissions. Submitting a form should creates proper new records in the database.
+  * It implements the controllers for listing venues, artists, and shows.
+  * It implements search, powering the `/search` endpoints that serve the application's search functionalities.
+  * It serves venue and artist detail pages, powering the `<venue|artist>/<id>` endpoints that power the detail pages.
 
 4. Some examples of the application's behaviour are:
-  -- When a user submits a new artist record, the user should be able to see it populate in /artists, as well as search for the artist by name and have the search return results.
-  -- A user should be able to go to the URL `/artist/<artist-id>` to visit a particular artist’s page using a unique ID per artist, and see real data about that particular artist.
-  -- Venues should be displayed in groups by city and state.
-  -- Search should be allowed to be partial string matching and case-insensitive.
-  -- Past shows versus Upcoming shows should be distinguished in Venue and Artist pages.
-  -- A user should be able to click on the venue for an upcoming show in the Artist's page, and on that Venue's page, see the same show in the Venue Page's upcoming shows section.
-4. Any fellow developer on this application should be able to run `flask db migrate`, and have a local database (once set up and created) be populated with the right tables to run this application and have it interact with a local postgres server, serving the application's needs completely with real data from the local database.
+  * When a user submits a new artist record, the user should be able to see it populate in /artists, as well as search for the artist by name and have the search return results.
+  * A user should be able to go to the URL `/artist/<artist-id>` to visit a particular artist’s page using a unique ID per artist, and see real data about that particular artist.
+  * Venues should be displayed in groups by city and state.
+  * Search should be allowed to be partial string matching and case-insensitive.
+  * Past shows versus Upcoming shows should be distinguished in Venue and Artist pages.
+  * A user should be able to click on the venue for an upcoming show in the Artist's page, and on that Venue's page, see the same show in the Venue Page's upcoming shows section.
+
+5. Any fellow developer on this application should be able to run `flask db migrate`, and have a local database (once set up and created) be populated with the right tables to run this application and have it interact with a local postgres server, serving the application's needs completely with real data from the local database.
 
 ##### Go above and beyond
 
